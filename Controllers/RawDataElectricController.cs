@@ -16,9 +16,9 @@ public class RawDataElectricController : ControllerBase
     }
     
     [HttpGet(Name = "GetRawDataElectric")]
-    public async Task<IEnumerable<RawDataElectricIo.RawDataElectricModel>> Get()
+    public async Task<IEnumerable<RawDataElectricIo.RawDataElectricModel>> Get([FromQuery] string deviceSeq)
     {
-        var ret = await _rawDataElectricIo.GetRawDataElectricAsync(DateTime.Now.AddYears(-3), DateTime.Now);  
+        var ret = await _rawDataElectricIo.GetRawDataElectricAsync(DateTime.Now.AddYears(-3), DateTime.Now, deviceSeq);  
         return ret;
     }
     
