@@ -25,21 +25,39 @@ public class RawDataElectricIo
         public double ValueMdm { get; set; }
         public double ValueCap { get; set; }
         public DateTime CreateTime { get; set; }
+
+        // 新增屬性，用於在需要時格式化 CreateTime 為 "HH:mm"
+        public string FormattedCreateTime => CreateTime.ToString("HH:mm");
     }
     
-    public async Task<IEnumerable<RawDataElectricModel>> GetRawDataElectricAsync(DateTime start, DateTime end)
+    public async Task<IEnumerable<RawDataElectricModel>> GetRawDataElectricAsync(DateTime start, DateTime end, string deviceSeq)
     {
         using var connection = _context.CreateConnection();
-        var sql = @"
+        /*var sql = @"
             SELECT TOP (10) *
             FROM [ktl].[RawDataElectric]
+            WHERE CreateTime BETWEEN @start AND @end";*/
+
+        var sql = @"
+            SELECT TOP (10) * 
+            FROM [ktl].[RawDataElectric_back]
             WHERE CreateTime BETWEEN @start AND @end";
+
+        // Add condition for eventSeq if it is provided
+        if (!string.IsNullOrEmpty(deviceSeq))
+        {
+            sql += " AND DeviceSeq = @deviceSeq";
+        }
+
+        sql += " ORDER BY CreateTime DESC";
+
         try
         {
             return await connection.QueryAsync<RawDataElectricModel>(sql, new
             {
                 start,
-                end
+                end,
+                deviceSeq
             });
         }
         catch (Exception ex)
