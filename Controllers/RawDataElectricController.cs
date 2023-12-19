@@ -22,5 +22,14 @@ public class RawDataElectricController : ControllerBase
         return ret;
     }
     
+     
+    
+    // Api for highchart plot data
+    [HttpGet("plot", Name = "GetRawDataElectricPlot")]
+    public async Task<IEnumerable<RawDataElectricIo.RawDataElectricModel>> GetPlot()
+    {
+        var ret = await _rawDataElectricIo.GetRawDataElectricAsync(DateTime.Now.AddYears(-3), DateTime.Now);  
+        return ret;
+    }
     
 }

@@ -48,4 +48,59 @@ public class RawDataElectricIo
             throw;
         }
     }
+    
+    public class RawDataElectricPlotModel
+    {
+        public DateTime DateTime { get; set; }
+        public double ValueKwAvg { get; set; }
+        public double ValueKwdAvg { get; set; }
+    }
+    // provide average value for different time interval
+    public async Task<IEnumerable<RawDataElectricPlotModel>> GetRawDataElectricDailyAvgAsync(string deviceSeq, DateTime start, DateTime end)
+    {
+        using var connection = _context.CreateConnection();
+        var sql = @"
+            SELECT EventDate as DateTime, AVG(ValueKw) AS ValueKwAvg, AVG(ValueKwd) AS ValueKwdAvg
+            FROM [ktl].[RawDataElectric]
+            WHERE CreateTime BETWEEN @start AND @end and DeviceSeq = @deviceSeq
+            GROUP BY EventDate;";
+        try
+        {
+            return await connection.QueryAsync<RawDataElectricPlotModel>(sql, new
+            {
+                deviceSeq,
+                start,
+                end
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetRawDataElectricDailyAvgAsync Error");
+            throw;
+        }
+    }
+    
+    public async Task<IEnumerable<RawDataElectricPlotModel>> GetRawDataElectricMonthlyAvgAsync(string deviceSeq, DateTime start, DateTime end)
+    {
+        using var connection = _context.CreateConnection();
+        var sql = @"
+            SELECT DateAdd(Month, DateDiff(Month, 0, EventDate), 0) as DateTime, AVG(ValueKw) AS ValueKwAvg, AVG(ValueKwd) AS ValueKwdAvg
+            FROM [ktl].[RawDataElectric]
+            WHERE CreateTime >= @start AND CreateTime < @end and DeviceSeq = @deviceSeq
+            GROUP BY DateAdd(Month, DateDiff(Month, 0, EventDate), 0)";
+        try
+        {
+            return await connection.QueryAsync<RawDataElectricPlotModel>(sql, new
+            {
+                deviceSeq,
+                start,
+                end
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetRawDataElectricMonthlyAvgAsync Error");
+            throw;
+        }
+    }
 }
